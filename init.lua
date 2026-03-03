@@ -96,7 +96,8 @@ function ia_toolmods.register_enhanced_tool(name, def)
     -- Prevent double registration
     if minetest.registered_tools[i_name] then return end
 
-    local e_def = apply_visuals(def, ia_toolmods.variants.enhanced.color, "Enhanced ")
+    --local e_def = apply_visuals(def, ia_toolmods.variants.enhanced.color, "Enhanced ")
+    local e_def = table.copy(def)
     
     if e_def.tool_capabilities and e_def.tool_capabilities.groupcaps then
         for _, group in pairs(e_def.tool_capabilities.groupcaps) do
