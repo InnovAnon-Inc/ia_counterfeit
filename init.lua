@@ -12,10 +12,18 @@
 --
 -- FIXME don't need enhanced-poopy + poopy-enhanced unless they have different behaviors
 -- FIXME fakery:default_mese_crystal should not exist (we should be using fakery:mese)
+-- FIXME fake lights shouldn't work (reliably)
+-- FIXME fake nodes should (risk) explode or catch fire
+-- FIXME fake items should (risk) injuring the user
+-- FIXME fake items should on_use properly; maybe risk of failure
+-- FIXME 2026-03-03 09:07:52: ERROR[Main]: generateImagePart(): Could not load image "enhanced_3d_armor_boots_bronze.png" while building texture; Creating a dummy image ... why is it trying to load enhance_....png ???
+-- TODO use ia_crapht
 
-local modname = minetest.get_current_modname() or "ia_toolmods"
-
-ia_toolmods = {
+assert(minetest.get_modpath('ia_util'))
+assert(ia_util ~= nil)
+local modname                    = minetest.get_current_modname() or "ia_toolmods"
+local storage                    = minetest.get_mod_storage()
+ia_toolmods                      = {
     variants = {
         enhanced = { prefix = "Enhanced ", color = "#FFFF00", suffix = "_enhanced", mod = "enhanced" },
         poopy    = { prefix = "Poopy ",    color = "#964B00", suffix = "_pooper",   mod = "pooper"   },
@@ -26,6 +34,11 @@ ia_toolmods = {
         ["default:mese_crystal"] = "fakery:mese",
     }
 }
+local modpath, S                 = ia_util.loadmod(modname)
+local log                        = ia_util.get_logger(modname)
+local assert                     = ia_util.get_assert(modname)
+
+--local modname = minetest.get_current_modname() or "ia_toolmods"
 
 -- 1. UTILITIES --
 
@@ -69,14 +82,27 @@ local function get_variant_names(name, variant_key)
     return technical_name, internal_name, alias_name
 end
 
+local function is_armor(name)
+    return (minetest.get_item_group(name, "armor_head") > 0 or 
+       minetest.get_item_group(name, "armor_torso") > 0 or
+       minetest.get_item_group(name, "armor_legs") > 0 or
+       minetest.get_item_group(name, "armor_feet") > 0 or
+       minetest.get_item_group(name, "armor_shield") > 0)
+end
+
 -- Helper: Applies visual changes and common group settings.
-local function apply_visuals(def, color, prefix)
+--local function apply_visuals(def, color, prefix)
+local function apply_visuals(name, def, color, prefix)
+    --minetest.log('apply_visuals(name='..name..', color='..tostring(color)..', prefix='..prefix..')')
     local new_def = table.copy(def)
     if prefix and new_def.description then
         new_def.description = prefix .. new_def.description
     end
+    local _is_armor = is_armor(name)
+    local alpha     = (_is_armor and 25) or 40
+    local overlay   = color and ("^[colorize:" .. color .. ":" .. alpha) or ""
     if color then
-        local overlay = "^[colorize:" .. color .. ":40"
+--        local overlay = "^[colorize:" .. color .. ":40"
         if new_def.inventory_image then
             new_def.inventory_image = new_def.inventory_image .. overlay
         end
@@ -85,7 +111,55 @@ local function apply_visuals(def, color, prefix)
         end
     end
     
-    new_def.groups = table.copy(new_def.groups or {})
+--    new_def.groups = table.copy(new_def.groups or {})
+--    return new_def
+--end
+--local function apply_visuals(name, new_def, color)
+--    if not color then return end
+--    
+--    local overlay = "^[colorize:" .. color .. ":40"
+--    
+--    -- 1. Standard inventory/wield images
+--    if new_def.inventory_image then
+--        new_def.inventory_image = new_def.inventory_image .. overlay
+--    end
+--    if new_def.wield_image then
+--        new_def.wield_image = new_def.wield_image .. overlay
+--    end
+
+    -- 2. 3D Armor specific fields (The Fix)
+    -- We force the texture and preview to use the base item's texture + our overlay
+    if _is_armor then
+	    if name:find('boots', 1, true) then
+            minetest.log('apply_visuals(name='..name..', color='..tostring(color)..', prefix='..prefix..')')
+            end
+
+--        -- Get the original definition to find the base texture
+--        local base_def = minetest.registered_items[name]
+--        if base_def then
+--            -- Use existing texture or fall back to the naming convention of the BASE item
+--            local base_texture = base_def.texture or (name:gsub(":", "_") .. ".png")
+--            local base_preview = base_def.preview or (name:gsub(":", "_") .. "_preview.png")
+            local base_texture = def.texture or (name:gsub(":", "_") .. ".png")
+            local base_preview = def.preview or (name:gsub(":", "_") .. "_preview.png")
+	    if name:find('boots', 1, true) then
+	    minetest.log('before texture: '..base_texture)
+	    minetest.log('before preview: '..base_preview)
+            end
+
+	    --base_texture = base_texture:gsub("%.png$", "")
+            --base_preview = base_preview:gsub("%.png$", "")
+
+--            new_def.texture = base_texture .. overlay
+--            new_def.preview = base_preview .. overlay
+            new_def.texture = base_texture
+            new_def.preview = base_preview
+	    if name:find('boots', 1, true) then
+	    minetest.log('after  texture: '..new_def.texture)
+	    minetest.log('after  preview: '..new_def.preview)
+            end
+--        end
+    end
     return new_def
 end
 
@@ -96,8 +170,9 @@ function ia_toolmods.register_enhanced_tool(name, def)
     -- Prevent double registration
     if minetest.registered_tools[i_name] then return end
 
-    --local e_def = apply_visuals(def, ia_toolmods.variants.enhanced.color, "Enhanced ")
-    local e_def = table.copy(def)
+--    local e_def = apply_visuals(def, ia_toolmods.variants.enhanced.color, "Enhanced ")
+    local e_def = apply_visuals(name, def, ia_toolmods.variants.enhanced.color, "Enhanced ")
+    --local e_def = table.copy(def)
     
     if e_def.tool_capabilities and e_def.tool_capabilities.groupcaps then
         for _, group in pairs(e_def.tool_capabilities.groupcaps) do
@@ -122,7 +197,8 @@ function ia_toolmods.register_poopy_tool(name, def)
     -- Prevent double registration
     if minetest.registered_tools[i_name] then return end
 
-    local p_def = apply_visuals(def, ia_toolmods.variants.poopy.color, "Poopy ")
+--    local p_def = apply_visuals(def, ia_toolmods.variants.poopy.color, "Poopy ")
+    local p_def = apply_visuals(name, def, ia_toolmods.variants.poopy.color, "Poopy ")
 
     p_def.on_use = function(itemstack, user, pointed_thing)
         if pointed_thing and pointed_thing.type == "object" then
@@ -152,7 +228,8 @@ local function register_fake_variant(name, original_def)
         return i_name
     end
 
-    local f_def = apply_visuals(original_def, nil, "Fake ")
+--    local f_def = apply_visuals(original_def, nil, "Fake ")
+    local f_def = apply_visuals(name, original_def, nil, "Fake ")
     f_def.tool_capabilities = nil
 
     if original_def.drawtype or minetest.registered_nodes[name] then
