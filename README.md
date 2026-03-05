@@ -1,6 +1,8 @@
 ## IA Tool Mods
 Consolidated `enhanced` + `pooper` extensions + `fakery` extensions
 
+NOTE screenshots outdated; now only supporting fakery
+
 ![Screenshot](https://github.com/InnovAnon-Inc/ia_toolmods/blob/main/screenshot_0.png)
 ![Screenshot](https://github.com/InnovAnon-Inc/ia_toolmods/blob/main/screenshot_1.png)
 ![Screenshot](https://github.com/InnovAnon-Inc/ia_toolmods/blob/main/screenshot_2.png)
