@@ -1,6 +1,6 @@
--- ia_fakery/core.lua
+-- ia_counterfeit/core.lua
 -- NOTE make sure we allow "substitutions": to make a fake item that requires some number of mese crystals and/or diamonds, we just need any one of them to be fake
--- ia_fakery/core.lua
+-- ia_counterfeit/core.lua
 local MODNAME = minetest.get_current_modname()
 local log = ia_util.get_logger(MODNAME)
 
@@ -8,13 +8,21 @@ local function get_fake_name(name)
     local clean_name = name:match("^:(.+)") or name
     local m_name, i_name = clean_name:match("([^:]+):([^:]+)")
     if not m_name then m_name = "unknown"; i_name = clean_name end
-    return "fakery:" .. m_name .. "_" .. i_name
+    return "fakery:" .. m_name .. "_" .. i_name -- NOTE we can call it MODNAME .. to avoid needing the :fakery: below
 end
 
-function ia_fakery.ensure_fake_variant(name)
-    if ia_fakery.substitutions[name] then return ia_fakery.substitutions[name] end
-    if name:find("^fakery:") or ia_fakery.processed_items[name] then return nil end
-    ia_fakery.processed_items[name] = true
+local function ensure_fake_variant_fakery_check(name)
+    if name == 'fakery:mese' or name == 'fakery:diamond' then return true end
+    --if not name:find("^fakery:") then return true end
+    --if name == 'fakery:table_lv' then return false end
+    return false
+end
+
+function ia_counterfeit.ensure_fake_variant(name)
+    if ia_counterfeit.substitutions[name] then return ia_counterfeit.substitutions[name] end
+    --if name:find("^fakery:") or ia_counterfeit.processed_items[name] then return nil end
+    if ensure_fake_variant_fakery_check(name) or ia_counterfeit.processed_items[name] then return nil end
+    ia_counterfeit.processed_items[name] = true
 
     local recipes = minetest.get_all_craft_recipes(name)
     if not recipes then return nil end
@@ -36,13 +44,14 @@ function ia_fakery.ensure_fake_variant(name)
         -- NORMALIZE: Cooking/Fuel uses a string, Normal/Shapeless uses a table
         local items_to_process = (type(items) == "table") and items or {items}
 
-        for i, ingredient in pairs(items_to_process) do
+        for i, ingredient in pairs(items_to_process) do -- TODO MUST handle all combinations of fake & real ingredients
             if type(ingredient) == "string" and ingredient ~= "" then
                 -- Track specific enshittification triggers
                 if ingredient == "default:mese_crystal" or ingredient == "fakery:mese" then used_mese = true end
                 if ingredient == "default:diamond" or ingredient == "fakery:diamond" then used_diamond = true end
+		-- TODO fakery has a bunch of other fake items (when using mods that i'm not currently using)
 
-                local f_ing = ia_fakery.ensure_fake_variant(ingredient)
+                local f_ing = ia_counterfeit.ensure_fake_variant(ingredient)
                 if f_ing then
                     new_recipe_items[i] = f_ing
                     recipe_changed = true
@@ -67,7 +76,7 @@ function ia_fakery.ensure_fake_variant(name)
                     if is_light then
                         def.groups = def.groups or {}
                         def.groups.fake_light = 1
-                        ia_fakery.light_nodes[fake_name] = true
+                        ia_counterfeit.light_nodes[fake_name] = true
                     end
 
                     -- B. Apply App-Specific Overrides
@@ -90,7 +99,7 @@ function ia_fakery.ensure_fake_variant(name)
                     end
 
                     -- C. Apply Standard Enshittification
-                    def = ia_fakery.apply_standard_enshittification(def, name, used_mese, used_diamond)
+                    def = ia_counterfeit.apply_standard_enshittification(def, name, used_mese, used_diamond)
 
                     -- D. Registration
                     log(3, "Registering fake variant: " .. fake_name)
@@ -129,8 +138,8 @@ function ia_fakery.ensure_fake_variant(name)
             assert(craft_def.recipe, "Failed to reconstruct " .. method .. " recipe for " .. fake_name)
             
             minetest.register_craft(craft_def)
-            ia_fakery.substitutions[name] = fake_name
+            ia_counterfeit.substitutions[name] = fake_name
         end
     end
-    return ia_fakery.substitutions[name]
+    return ia_counterfeit.substitutions[name]
 end

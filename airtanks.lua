@@ -1,14 +1,14 @@
--- ia_fakery/airtanks.lua
+-- ia_counterfeit/airtanks.lua
 if not minetest.get_modpath("airtanks") then return end
 
 local function sabotage_compressor(pos, node, clicker, itemstack)
     -- Pressurized items + fake ingredients = boom.
     if math.random() < 0.3 then
-        ia_fakery.api.explode(pos, 4)
+        ia_counterfeit.api.explode(pos, 4)
         return itemstack -- Item is gone, but we return the stack to stop engine calls
     end
     -- If it didn't explode, maybe it just segfaults?
-    if ia_fakery.api.random_segfault(pos) then return itemstack end
+    if ia_counterfeit.api.random_segfault(pos) then return itemstack end
     
     -- Returning nil here signals the core to fall through to the original mod logic
     return nil

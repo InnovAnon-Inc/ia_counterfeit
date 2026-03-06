@@ -1,4 +1,4 @@
--- ia_fakery/init.lua
+-- ia_counterfeit/init.lua
 -- FIXME fake lights shouldn't work (reliably) ... gotta check the light source property ?
 -- FIXME fake nodes/items should (risk) explode or catch fire, especially if they have fake mese
 -- FIXME fake nodes/items should not on_use properly; risk of just not working; risk of breaking; risk of injuring user; especially if they have fake diamond
@@ -9,9 +9,9 @@
 
 assert(minetest.get_modpath('ia_util'))
 assert(ia_util ~= nil)
-local modname                    = minetest.get_current_modname() or "ia_fakery"
+local modname                    = minetest.get_current_modname() or "ia_counterfeit"
 local storage                    = minetest.get_mod_storage()
-ia_fakery                        = {
+ia_counterfeit                        = {
     substitutions = {
         ["default:diamond"]      = "fakery:diamond",
         ["default:mese_crystal"] = "fakery:mese",
@@ -29,6 +29,6 @@ minetest.register_on_mods_loaded(function()
     end
 
     for _, name in ipairs(all_items) do
-        ia_fakery.ensure_fake_variant(name)
+        ia_counterfeit.ensure_fake_variant(name)
     end
 end)
