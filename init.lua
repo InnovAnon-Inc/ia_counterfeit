@@ -53,4 +53,44 @@ minetest.register_on_mods_loaded(function()
     for _, name in ipairs(all_items) do
         ia_counterfeit.ensure_fake_variant(name)
     end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if minetest.get_modpath("technic") and minetest.get_modpath("mcg_lockworkshop") then
+	mcg_lockworkshop.register_craft("technic:gold_chest",    "technic:gold_locked_chest")
+	mcg_lockworkshop.register_craft("technic:iron_chest",    "technic:iron_locked_chest")
+	mcg_lockworkshop.register_craft("technic:copper_chest",  "technic:copper_locked_chest")
+	mcg_lockworkshop.register_craft("technic:silver_chest",  "technic:silver_locked_chest")
+	mcg_lockworkshop.register_craft("technic:mithril_chest", "technic:mithril_locked_chest")
+
+	mcg_lockworkshop.register_craft("fakery:technic_gold_chest",    "fakery:technic_gold_locked_chest")
+	mcg_lockworkshop.register_craft("fakery:technic_iron_chest",    "fakery:technic_iron_locked_chest")
+	mcg_lockworkshop.register_craft("fakery:technic_copper_chest",  "fakery:technic_copper_locked_chest")
+	mcg_lockworkshop.register_craft("fakery:technic_silver_chest",  "fakery:technic_silver_locked_chest")
+	mcg_lockworkshop.register_craft("fakery:technic_mithril_chest", "fakery:technic_mithril_locked_chest")
+end
+
+
+
+
+
+
 end)

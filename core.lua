@@ -16,7 +16,7 @@ local function ensure_fake_variant_fakery_check(name)
 	if name == 'fakery:diamond'  then return true end
 	if name == 'fakery:obsidian' then return true end
 	if name == 'fakery:gold'     then return true end
---	if name == 'fakery:mithril'  then -- TODO
+--	if name == 'fakery:mithril'  then -- TODO I need those specific item names
 --		assert(minetest.get_modpath('moreores'))
 --		return true
 --	end
@@ -61,8 +61,16 @@ function ia_counterfeit.ensure_fake_variant(name) -- TODO the sloc count is fatt
 
         local new_recipe_items = {}
         local recipe_changed = false
-        local used_mese = false
-        local used_diamond = false
+        local used_mese     = false
+        local used_diamond  = false
+	
+	local used_obsidian = false
+	local used_gold     = false
+	local used_mithril  = false
+	local used_cloud    = false
+	local used_lava     = false
+	local used_op       = false
+	local used_uranium  = false
 
         -- NORMALIZE: Cooking/Fuel uses a string, Normal/Shapeless uses a table
         local items_to_process = (type(items) == "table") and items or {items}
@@ -70,9 +78,15 @@ function ia_counterfeit.ensure_fake_variant(name) -- TODO the sloc count is fatt
         for i, ingredient in pairs(items_to_process) do -- TODO MUST handle all combinations of fake & real ingredients
             if type(ingredient) == "string" and ingredient ~= "" then
                 -- Track specific enshittification triggers
-                if ingredient == "default:mese_crystal" or ingredient == "fakery:mese" then used_mese = true end
-                if ingredient == "default:diamond" or ingredient == "fakery:diamond" then used_diamond = true end
-		-- TODO fakery has a bunch of other fake items (when using mods that i'm not currently using)
+                if ingredient == "default:mese_crystal"   or ingredient == "fakery:mese"     then used_mese     = true end
+                if ingredient == "default:diamond"        or ingredient == "fakery:diamond"  then used_diamond  = true end
+		if ingredient == "default:obsidian_shard" or ingredient == "fakery:obsidian" then used_obsidian = true end
+		if ingredient == "default:gold_ingot"     or ingredient == "fakery:gold"     then used_gold     = true end
+		--if ingredient == ...                      or ingredient == "fakery:mithril"  then used_mithril  = true end -- TODO I need those specific item names
+		--if ingredient == ...                      or ingredient == "fakery:cloud"    then used_cloud    = true end
+		--if ingredient == ...                      or ingredient == "fakery:lava"     then used_lava     = true end
+		--if ingredient == ...                      or ingredient == "fakery:op"       then used_op       = true end
+		--if ingredient == "technic:uranium_lump"   or ingredient == "fakery:uranium"  then used_uranium  = true end
 
                 local f_ing = ia_counterfeit.ensure_fake_variant(ingredient)
                 if f_ing then
@@ -166,3 +180,37 @@ function ia_counterfeit.ensure_fake_variant(name) -- TODO the sloc count is fatt
     end
     return ia_counterfeit.substitutions[name]
 end
+
+
+
+
+
+
+
+
+
+
+
+---- Helper to generate permutations (Conceptual)
+--local function get_combinations(recipe_items)
+--    local results = {{}}
+--    for _, item in ipairs(recipe_items) do
+--        local fake = ia_counterfeit.get_fake_name(item) -- Check if fake exists
+--        local next_step = {}
+--        for _, combination in ipairs(results) do
+--            -- Option A: Use the real one
+--            local res_real = table.copy(combination)
+--            table.insert(res_real, item)
+--            table.insert(next_step, res_real)
+--
+--            -- Option B: Use the fake one (if it exists)
+--            if minetest.registered_items[fake] then
+--                local res_fake = table.copy(combination)
+--                table.insert(res_fake, fake)
+--                table.insert(next_step, res_fake)
+--            end
+--        end
+--        results = next_step
+--    end
+--    return results
+--end
