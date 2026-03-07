@@ -77,6 +77,8 @@ function ia_counterfeit.apply_standard_enshittification(def, name, used_mese, us
         }
     end
 
+    -- TODO ensure that counterfeit nodes are also shit (e.g., glass and gold stairs should break if you look at them wrong... maybe even somehow decay)
+
     -- B. "Sticky" Hands (Refuse to drop)
     local old_on_drop = def.on_drop
     def.on_drop = function(itemstack, dropper, pos)
